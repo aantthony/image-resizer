@@ -144,7 +144,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	if err == nil {
 		orientationTag, err := x.Get(exif.Orientation)
 		if err == nil {
-			orientation = orientationTag.Int(0)
+			orientation_, err2 := orientationTag.Int(0)
+			if err2 == nil {
+				orientation = int64(orientation_)
+			}
 		}
 	}
 
