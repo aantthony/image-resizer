@@ -4,6 +4,15 @@ image-resizer
 Image resizing service written in Go
 
 
+## Install
+
+```bash
+go get github.com/nfnt/resize
+go get github.com/rwcarlsen/goexif/exif
+go build ws.go
+./ws
+```
+
 ## Usage
 
 URL Format:
