@@ -59,15 +59,40 @@ func fixExif(s image.Image, o int64) image.Image {
 
 func handler(w http.ResponseWriter, r *http.Request) {
   h := strings.Split(r.URL.Path, ".jpg/")
-
+  if (len(h) != 2) {
+    w.WriteHeader(http.StatusNotFound)
+    fmt.Fprint(w, "Invalid Path")
+    return
+  }
   basePath := h[1]
   filename := strings.Split(strings.Split(h[0], "/")[1], ".")
   size := strings.Split(filename[0], "x")
 
-  outWidth,  _ := strconv.ParseInt(size[0], 0, 64)
+  outWidth, _ := strconv.ParseInt(size[0], 0, 64)
   outHeight, _ := strconv.ParseInt(size[1], 0, 64)
+  if (outWidth <= 0 || outHeight <= 0) {
+    w.WriteHeader(http.StatusNotFound)
+    fmt.Fprint(w, "Invalid size")
+    return
+  }
+  if (outWidth >= 4096 || outHeight >= 4096) {
+    w.WriteHeader(http.StatusNotFound)
+    fmt.Fprint(w, "Invalid size")
+    return
+  }
+  valid := true
 
-  s := []string{"http://", basePath};
+  // if (strings.Index(basePath, "example.com/") == 0) {
+  //   valid = true
+  // }
+
+  if (!valid) {
+    w.WriteHeader(http.StatusNotFound)
+    fmt.Fprint(w, "Invalid Domain")
+    return
+  }
+
+  s := []string{"http://", basePath}
 
   res, err := http.Get(strings.Join(s, ""))
   if err != nil {
@@ -150,7 +175,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
     draw.Draw(n, n.Bounds(), resized, image.Point{widthDiff,0}, draw.Src)
   }
 
-  jpeg.Encode(w, n, &jpeg.Options{jpeg.DefaultQuality})
+  quality := 85
+  if (width <= 256) {
+    quality = 95
+  }
+  w.Header().Set("Cache-Control", "no-transform,public,max-age=2592000,s-maxage=2592000")
+  jpeg.Encode(w, n, &jpeg.Options{quality})
 }
 
 func main() {
